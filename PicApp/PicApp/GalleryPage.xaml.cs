@@ -1,51 +1,27 @@
 ﻿using PicApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xamarin.Forms;
-using Xamarin.Essentials;
 using System.Diagnostics;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+
+using System.Threading.Tasks;
+
 
 namespace PicApp
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
+    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class GalleryPage : ContentPage
     {
+        public ObservableCollection<Photo> Photos { get; set; }
+
+        
         public GalleryPage()
         {
             InitializeComponent();
-            CheckPermissionsAndLoadPhotos();
-        }
-
-        private async void CheckPermissionsAndLoadPhotos()
-        {
-            var status = await CheckAndRequestStoragePermissionAsync();
-
-            if (status == PermissionStatus.Granted)
-            {
-                LoadPhotos();
-            }
-            else
-            {
-                await DisplayAlert("Error", "Storage permission is required to access photos.", "OK");
-            }
-        }
-
-        private async Task<PermissionStatus> CheckAndRequestStoragePermissionAsync()
-        {
-            var status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
-
-            if (status != PermissionStatus.Granted)
-            {
-                status = await Permissions.RequestAsync<Permissions.StorageRead>();
-            }
-
-            return status;
+            Photos = new ObservableCollection<Photo>();
+            LoadPhotos();
         }
 
         private async void LoadPhotos()
@@ -75,5 +51,58 @@ namespace PicApp
 
             collectionView.ItemsSource = photos;
         }
+
+        private void OnOpenClicked(object sender, EventArgs e)
+        {
+            var selectedPhoto = collectionView.SelectedItem as Photo;
+            if (selectedPhoto != null)
+            {
+                Navigation.PushAsync(new FullScreenPhotoPage(selectedPhoto));
+            }
+            else
+            {
+                DisplayAlert("Error", "Please select a photo to open", "OK");
+            }
+        }
+
+        private async void OnDeleteClicked(object sender, EventArgs e)
+        {
+            var selectedPhoto = collectionView.SelectedItem as Photo;
+            if (selectedPhoto != null)
+            {
+                // Удаление изображения из коллекции
+                Photos.Remove(selectedPhoto);
+
+                // Удаление изображения из файловой системы
+                await DeletePhotoFromFileSystem(selectedPhoto);
+
+                // Показать сообщение об успешном удалении
+                await DisplayAlert("Success", "Photo deleted successfully", "OK");
+
+            }
+            else
+            {
+                await DisplayAlert("Error", "Please select a photo to delete", "OK");
+            }
+        }
+
+        private async Task DeletePhotoFromFileSystem(Photo photo)
+        {
+            try
+            {
+                if (File.Exists(photo.Path))                   
+                {
+                    await DisplayAlert("warn", $"файл существует {photo.Path}", "cancel");
+                    File.Delete(photo.Path);
+                }
+                await Task.CompletedTask; // Для асинхронной операции
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to delete photo: {ex.Message}", "OK");
+            }
+        }
+
+
     }
 }

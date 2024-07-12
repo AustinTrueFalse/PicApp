@@ -3,21 +3,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PicApp.GalleryPage">
     <ContentPage.Content>
-        <StackLayout Padding="10">
-            <Label Text="Gallery" 
-               FontSize="Large" 
-               HorizontalOptions="Center" 
-               Margin="0,10,0,20"/>
-            <CollectionView x:Name="collectionView">
+        <StackLayout>
+            <CollectionView x:Name="collectionView"
+                        ItemsSource="{Binding Photos}"
+                        SelectionMode="Single">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <StackLayout Orientation="Horizontal" Padding="5">
-                            <Image Source="{Binding Path}" WidthRequest="100" HeightRequest="100" Aspect="AspectFill" />
-                            <Label Text="{Binding Name}" VerticalOptions="Center" HorizontalOptions="StartAndExpand" />
-                        </StackLayout>
+                        <Grid Padding="5">
+                            <Image Source="{Binding Path}"
+                               Aspect="AspectFill"
+                               HeightRequest="100"
+                               WidthRequest="100"/>
+                            <Label Text="{Binding Name}"
+                               FontSize="Small"
+                               VerticalOptions="End"
+                               HorizontalOptions="Center"
+                               TextColor="Black"/>
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
+
+            <!-- Кнопки "Открыть" и "Удалить" -->
+            <StackLayout Orientation="Horizontal" HorizontalOptions="CenterAndExpand">
+                <Button Text="Открыть" Clicked="OnOpenClicked" />
+                <Button Text="Удалить" Clicked="OnDeleteClicked" />
+            </StackLayout>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>
